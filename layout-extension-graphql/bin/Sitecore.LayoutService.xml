@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Sitecore.LayoutService</name>
+    </assembly>
+    <members>
+        <member name="M:Sitecore.LayoutService.ItemRendering.ILayoutService.Render(Sitecore.Data.Items.Item,Sitecore.LayoutService.Configuration.IRenderingConfiguration,Sitecore.LayoutService.ItemRendering.RenderOptions)">
+            <summary>
+            Renders an item.
+            </summary>
+            <param name="item">The item to render</param>
+            <param name="renderingConfiguration"></param>
+            <param name="renderOptions"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sitecore.LayoutService.ItemRendering.LayoutService.Render(Sitecore.Data.Items.Item,Sitecore.LayoutService.Configuration.IRenderingConfiguration,Sitecore.LayoutService.ItemRendering.RenderOptions)">
+            <summary>
+            Renders an item.
+            </summary>
+            <param name="item">The item to render</param>
+            <param name="renderingConfiguration">Configured services used for rendering the item.</param>
+            <param name="renderOptions">Optional parameters for rendering the item.</param>
+            <returns></returns>
+        </member>
+        <member name="P:Sitecore.LayoutService.ItemRendering.Pipelines.GetLayoutServiceContext.GetLayoutServiceContextArgs.RenderedItem">
+            <summary>
+            The item being rendered. CAN BE NULL, if it's an item-not-found situation.
+            </summary>
+        </member>
+        <member name="M:Sitecore.LayoutService.ItemRendering.PlaceholderRenderingService.AddParentReferences(Sitecore.LayoutService.ItemRendering.RenderedPlaceholder)">
+            <summary>
+            Iterates a placeholder tree and adds parent references to elements within.
+            </summary>
+            <param name="placeholder"></param>
+        </member>
+        <member name="T:Sitecore.LayoutService.Presentation.Pipelines.RenderRendering.AddRecordedJsonToCache">
+            <summary>
+            Adds cacheable JSON rendering data to the HTML cache for later retrieval
+            during rendering of cached JSON renderings. The source object is cached,
+            not a JSON string, to avoid the need to re-parse it later.
+            </summary>
+        </member>
+        <member name="T:Sitecore.LayoutService.Presentation.Pipelines.RenderRendering.RenderJsonFromCache">
+             <summary>
+             Rendering JSON renderings from output cache is more complex than a normal rendering,
+             because we're caching both the HTML stub that refers to the JSON object by ID (<see cref="T:Sitecore.LayoutService.Presentation.RenderedJsonRenderingContext"/>)
+             and the actual object that gets serialized into JSON. So we have to restore both the HTML cache and the JSON to serialize.
+            
+             This processor also handles restoring HTML cache for JSON renderings, since we need their HTML stub to find the JSON data.
+             </summary>
+        </member>
+        <member name="T:Sitecore.LayoutService.Presentation.RenderedJsonRenderingContext">
+             <summary>
+             Stores renderings keyed by a GUID after they are rendered to JSON. This context allows us to look up the rendering data later for serialization,
+             when rendering has completed, without needing to perform multiple de/reserializations of the data when it's stored in the rendered placeholder (HTML).
+            
+             Instead, we store the GUID in the rendered HTML, and serialize it once at the end.
+             </summary>
+        </member>
+        <member name="M:Sitecore.LayoutService.Serialization.FieldSerializers.BaseFieldSerializer.WriteExtendedValues(Sitecore.Data.Fields.Field,Newtonsoft.Json.JsonTextWriter)">
+            <summary>
+            Write additional key/value pairs to the field object (or other data)
+            </summary>
+            <param name="field"></param>
+            <param name="writer"></param>
+        </member>
+        <member name="T:Sitecore.LayoutService.Serialization.FieldSerializers.BaseWrapperFieldSerializer">
+            <summary>
+            Base class for field serializer types that allow wrapping their editable value with children,
+            e.g. a link that can wrap other content within its rendered value with a start and end tag
+            </summary>
+        </member>
+        <member name="M:Sitecore.LayoutService.Serialization.FieldSerializers.IFieldSerializer.Serialize(Sitecore.Data.Fields.Field,Newtonsoft.Json.JsonTextWriter)">
+            <summary>
+            Serializes the field value to JSON
+            </summary>
+        </member>
+        <member name="P:Sitecore.LayoutService.Serialization.FieldSerializers.IFieldSerializer.EnableRenderedValues">
+            <summary>
+            Whether to return the FieldRendered field value ('editable') for experience editor support
+            </summary>
+        </member>
+    </members>
+</doc>

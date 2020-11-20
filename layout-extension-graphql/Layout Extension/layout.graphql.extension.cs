@@ -1,5 +1,6 @@
 ﻿using GraphQL;
 using GraphQL.Language.AST;
+using Newtonsoft.Json.Linq;
 using Sitecore;
 using Sitecore.Abstractions;
 using Sitecore.Data.Items;
@@ -28,12 +29,26 @@ namespace layout_extension_graphql.Layout_Extension
         private readonly IAsyncHelpers _asyncHelpers;
         private readonly Dictionary<string, IGraphQLEndpoint> _graphQLEndpoints;
 
+        public const string PlaceholderPathKey = "PlaceholderPath";
+
+        private JObject addPlaceHolderPath(Sitecore.Mvc.Presentation.Rendering rendering,
+          IRenderingConfiguration renderingConfig)
+        {
+            var result = base.ResolveContents(rendering, renderingConfig) ?? new JObject();
+
+            var jsonResult = (JObject)result;
+
+            jsonResult[PlaceholderPathKey] = rendering.Placeholder;
+
+            return jsonResult;
+        }
+
         public GraphQLAwareRenderingContentsResolver(
-          IConfigurationResolver configurationResolver,
-          IGraphQLEndpointManager graphQLEndpointManager,
-          IDocumentWriter documentWriter,
-          BaseLog log,
-          IAsyncHelpers asyncHelpers)
+              IConfigurationResolver configurationResolver,
+              IGraphQLEndpointManager graphQLEndpointManager,
+              IDocumentWriter documentWriter,
+              BaseLog log,
+              IAsyncHelpers asyncHelpers)
         {
             Sitecore.Diagnostics.Assert.ArgumentNotNull((object)configurationResolver, nameof(configurationResolver));
             Sitecore.Diagnostics.Assert.ArgumentNotNull((object)graphQLEndpointManager, nameof(graphQLEndpointManager));
@@ -52,26 +67,37 @@ namespace layout_extension_graphql.Layout_Extension
           IRenderingConfiguration renderingConfig)
         {
             RenderingItem renderingItem = rendering.RenderingItem;
+
             if (renderingItem == null)
+            {
+                return addPlaceHolderPath(rendering, renderingConfig);
                 return base.ResolveContents(rendering, renderingConfig);
+            }
+
             string str = renderingItem.InnerItem[Sitecore.JavaScriptServices.Core.FieldIDs.JsonRendering.GraphQLQuery];
             if (string.IsNullOrWhiteSpace(str))
+            {
+                return addPlaceHolderPath(rendering, renderingConfig);
                 return base.ResolveContents(rendering, renderingConfig);
+            }
             AppConfiguration appConfiguration = this._configurationResolver.ResolveForItem(Context.Item);
             if (appConfiguration == null)
             {
                 this._log.Warn("[JSS] - Rendering " + renderingItem.InnerItem.Paths.FullPath + " defined a GraphQL query to resolve its data, but when rendered on item " + Context.Item.Paths.FullPath + " it was not within a known JSS app path. The GraphQL query will not be used.", (object)this);
+                return addPlaceHolderPath(rendering, renderingConfig);
                 return base.ResolveContents(rendering, renderingConfig);
             }
             if (string.IsNullOrWhiteSpace(appConfiguration.GraphQLEndpoint))
             {
                 this._log.Error("[JSS] - The JSS app " + appConfiguration.Name + " did not have a graphQLEndpoint set, but rendering " + renderingItem.InnerItem.Paths.FullPath + " defined a GraphQL query to resolve its data. The GraphQL query will not be used until an endpoint is defined on the app config.", (object)this);
+                return addPlaceHolderPath(rendering, renderingConfig);
                 return base.ResolveContents(rendering, renderingConfig);
             }
             IGraphQLEndpoint graphQlEndpoint;
             if (!this._graphQLEndpoints.TryGetValue(appConfiguration.GraphQLEndpoint, out graphQlEndpoint))
             {
                 this._log.Error("[JSS] - The JSS app " + appConfiguration.Name + " is set to use GraphQL endpoint " + appConfiguration.GraphQLEndpoint + ", but no GraphQL endpoint was registered with this URL. GraphQL resolution will not be used.", (object)this);
+                return addPlaceHolderPath(rendering, renderingConfig);
                 return base.ResolveContents(rendering, renderingConfig);
             }
             GraphQLAwareRenderingContentsResolver.LocalGraphQLRequest localGraphQlRequest1 = new GraphQLAwareRenderingContentsResolver.LocalGraphQLRequest();
@@ -101,8 +127,13 @@ namespace layout_extension_graphql.Layout_Extension
                 graphQlEndpoint.Performance.CollectMetrics(graphQlEndpoint.SchemaInfo.Schema, (IEnumerable<Operation>)options.Document.Operations, result);
                 new QueryErrorLog((ILogger)new BaseLogAdapter(this._log)).RecordQueryErrors(result);
                 queryTracer.Result = result;
-                return (object)this._documentWriter.ToJObject((object)result);
+                //return (object)this._documentWriter.ToJObject((object)result);
+                var jsonResultToConvert = (object)this._documentWriter.ToJObject((object)result);
+                var jsonResult = (JObject)jsonResultToConvert;
+                jsonResult[PlaceholderPathKey] = rendering.Placeholder;
+                return jsonResult;
             }
+
         }
 
         protected class LocalGraphQLRequest : GraphQLRequest

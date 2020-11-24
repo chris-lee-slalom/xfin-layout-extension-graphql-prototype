@@ -107,6 +107,21 @@ namespace layout_extension_graphql.Layout_Extension
             localGraphQlRequest2.LocalVariables.Add("datasource", (object)rendering.DataSource);
             localGraphQlRequest2.LocalVariables.Add("defaultID", HttpContext.Current.Request.QueryString["defaultID"] ?? string.Empty);
             localGraphQlRequest2.LocalVariables.Add("cardID", HttpContext.Current.Request.QueryString["cardID"] ?? string.Empty);
+            try
+            {
+                string cardIDList = HttpContext.Current.Request.QueryString["cardIDList"];
+                string[] cardIDs = cardIDList.Split(',');
+                int cardInt = 1;
+                foreach (var cardID in cardIDs)
+                {
+                    localGraphQlRequest2.LocalVariables.Add("cardID" + cardInt, cardID);
+                    cardInt++;
+                }
+            }
+            catch (Exception ex)
+            {
+                //log error
+            }
             IDocumentExecuter executor = graphQlEndpoint.CreateDocumentExecutor();
             ExecutionOptions options = graphQlEndpoint.CreateExecutionOptions((GraphQLRequest)localGraphQlRequest2, !HttpContext.Current.IsCustomErrorEnabled);
             if (options == null)

@@ -109,6 +109,7 @@ namespace layout_extension_graphql.Layout_Extension
             localGraphQlRequest2.LocalVariables.Add("cardID", HttpContext.Current.Request.QueryString["cardID"] ?? string.Empty);
             try
             {
+                //TODO Get Param for card location and append in query here?
                 string cardIDList = HttpContext.Current.Request.QueryString["cardIDList"];
                 string[] cardIDs = cardIDList.Split(',');
                 int cardInt = 1;

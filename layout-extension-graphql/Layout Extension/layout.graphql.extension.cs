@@ -107,15 +107,17 @@ namespace layout_extension_graphql.Layout_Extension
             localGraphQlRequest2.LocalVariables.Add("datasource", (object)rendering.DataSource);
             localGraphQlRequest2.LocalVariables.Add("defaultID", HttpContext.Current.Request.QueryString["defaultID"] ?? string.Empty);
             localGraphQlRequest2.LocalVariables.Add("cardID", HttpContext.Current.Request.QueryString["cardID"] ?? string.Empty);
+            //Example of getting rendering field items to get path of card ID's
+            string getCardPath = rendering.Item.Fields["sample1"].ToString();
             try
             {
-                //TODO Get Param for card location and append in query here?
+
                 string cardIDList = HttpContext.Current.Request.QueryString["cardIDList"];
                 string[] cardIDs = cardIDList.Split(',');
                 int cardInt = 1;
                 foreach (var cardID in cardIDs)
                 {
-                    localGraphQlRequest2.LocalVariables.Add("cardID" + cardInt, cardID);
+                    localGraphQlRequest2.LocalVariables.Add("cardID" + cardInt, getCardPath + cardID);
                     cardInt++;
                 }
             }

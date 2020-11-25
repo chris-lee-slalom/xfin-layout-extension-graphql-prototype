@@ -31,15 +31,13 @@ namespace layout_extension_graphql.Layout_Extension
 
         public const string PlaceholderPathKey = "PlaceholderPath";
 
+        //Function to return rendering placeholder
         private JObject addPlaceHolderPath(Sitecore.Mvc.Presentation.Rendering rendering,
           IRenderingConfiguration renderingConfig)
         {
             var result = base.ResolveContents(rendering, renderingConfig) ?? new JObject();
-
             var jsonResult = (JObject)result;
-
             jsonResult[PlaceholderPathKey] = rendering.Placeholder;
-
             return jsonResult;
         }
 
@@ -71,43 +69,37 @@ namespace layout_extension_graphql.Layout_Extension
             if (renderingItem == null)
             {
                 return addPlaceHolderPath(rendering, renderingConfig);
-                return base.ResolveContents(rendering, renderingConfig);
             }
 
             string str = renderingItem.InnerItem[Sitecore.JavaScriptServices.Core.FieldIDs.JsonRendering.GraphQLQuery];
             if (string.IsNullOrWhiteSpace(str))
             {
                 return addPlaceHolderPath(rendering, renderingConfig);
-                return base.ResolveContents(rendering, renderingConfig);
             }
             AppConfiguration appConfiguration = this._configurationResolver.ResolveForItem(Context.Item);
             if (appConfiguration == null)
             {
                 this._log.Warn("[JSS] - Rendering " + renderingItem.InnerItem.Paths.FullPath + " defined a GraphQL query to resolve its data, but when rendered on item " + Context.Item.Paths.FullPath + " it was not within a known JSS app path. The GraphQL query will not be used.", (object)this);
                 return addPlaceHolderPath(rendering, renderingConfig);
-                return base.ResolveContents(rendering, renderingConfig);
             }
             if (string.IsNullOrWhiteSpace(appConfiguration.GraphQLEndpoint))
             {
                 this._log.Error("[JSS] - The JSS app " + appConfiguration.Name + " did not have a graphQLEndpoint set, but rendering " + renderingItem.InnerItem.Paths.FullPath + " defined a GraphQL query to resolve its data. The GraphQL query will not be used until an endpoint is defined on the app config.", (object)this);
                 return addPlaceHolderPath(rendering, renderingConfig);
-                return base.ResolveContents(rendering, renderingConfig);
             }
             IGraphQLEndpoint graphQlEndpoint;
             if (!this._graphQLEndpoints.TryGetValue(appConfiguration.GraphQLEndpoint, out graphQlEndpoint))
             {
                 this._log.Error("[JSS] - The JSS app " + appConfiguration.Name + " is set to use GraphQL endpoint " + appConfiguration.GraphQLEndpoint + ", but no GraphQL endpoint was registered with this URL. GraphQL resolution will not be used.", (object)this);
                 return addPlaceHolderPath(rendering, renderingConfig);
-                return base.ResolveContents(rendering, renderingConfig);
             }
             GraphQLAwareRenderingContentsResolver.LocalGraphQLRequest localGraphQlRequest1 = new GraphQLAwareRenderingContentsResolver.LocalGraphQLRequest();
             localGraphQlRequest1.Query = str;
             GraphQLAwareRenderingContentsResolver.LocalGraphQLRequest localGraphQlRequest2 = localGraphQlRequest1;
             localGraphQlRequest2.LocalVariables.Add("contextItem", (object)Context.Item.ID.Guid.ToString());
             localGraphQlRequest2.LocalVariables.Add("datasource", (object)rendering.DataSource);
-            localGraphQlRequest2.LocalVariables.Add("defaultID", HttpContext.Current.Request.QueryString["defaultID"] ?? string.Empty);
-            localGraphQlRequest2.LocalVariables.Add("cardID", HttpContext.Current.Request.QueryString["cardID"] ?? string.Empty);
-            //Example of getting rendering field items to get path of card ID's
+
+            //TODO Replace with correct path - Example of getting rendering field items to get path of card ID's
             string getCardPath = rendering.Item.Fields["sample1"].ToString();
             try
             {
@@ -123,8 +115,9 @@ namespace layout_extension_graphql.Layout_Extension
             }
             catch (Exception ex)
             {
-                //log error
+                this._log.Error("[JSS] - Something went wrong parsing the comma delimited query string parameter for cardIDList - " + ex.Message.ToString(), (object)this);
             }
+
             IDocumentExecuter executor = graphQlEndpoint.CreateDocumentExecutor();
             ExecutionOptions options = graphQlEndpoint.CreateExecutionOptions((GraphQLRequest)localGraphQlRequest2, !HttpContext.Current.IsCustomErrorEnabled);
             if (options == null)

@@ -395,6 +395,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="Javascript Services Content Resolver\aiqClass.cs" />
+    <Compile Include="Javascript Services Content Resolver\xfin.javascriptservices.renderingcontentresolvers.cs" />
     <Compile Include="Layout Extension\layout.graphql.extension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
